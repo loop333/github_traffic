@@ -1,0 +1,37 @@
+<html>
+<head>
+</head>
+<body>
+<script>
+var user = 'user';
+var password = 'password';
+
+var init = {
+  headers: new Headers({
+    'Authorization': 'Basic ' + btoa(user + ':' + password)
+  })
+};
+
+fetch('https://api.github.com/users/' + user + '/repos').then(response => {
+  return response.json();
+}).then(data => {
+  var names = data.map(repo => repo['name']);
+  var views =  Promise.all(data.map(repo => fetch(repo['url']+'/traffic/views?per=week', init)));
+  var clones =  Promise.all(data.map(repo => fetch(repo['url']+'/traffic/clones?per=week', init)));
+  return Promise.all([names, views, clones]);
+}).then(([names, views, clones]) => {
+  var views2 = Promise.all(views.map(repo => repo.json()));
+  var clones2 = Promise.all(clones.map(repo => repo.json()));
+  return Promise.all([names, views2, clones2]);
+}).then(([names, views, clones]) => {
+  var str = '<table>';
+  for (var i in names) {
+    str += `<tr><th>${names[i]}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
+  }
+  document.body.innerHTML = str;
+}).catch(error => {
+  console.log('Error: ' + error);
+});
+</script>
+</body>
+</html>
