@@ -24,7 +24,7 @@ fetch('https://api.github.com/users/' + user + '/repos').then(response => {
   var clones2 = Promise.all(clones.map(repo => repo.json()));
   return Promise.all([names, views2, clones2]);
 }).then(([names, views, clones]) => {
-  var str = '<table>';
+  var str = '<table><tr><th>Name<td>View Count<td>View Unique<td>Clone Count<td>Clone Unique</tr>';
   for (var i in names) {
     str += `<tr><th>${names[i]}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
   }
