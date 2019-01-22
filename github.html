@@ -1,8 +1,21 @@
 <html>
 <head>
 <style>
-th, td {
+table {
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+}
+
+td {
   text-align: right;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 5px;
 }
 </style>
 </head>
@@ -29,7 +42,7 @@ fetch('https://api.github.com/users/' + user + '/repos').then(response => {
   var clones2 = Promise.all(clones.map(repo => repo.json()));
   return Promise.all([names, views2, clones2]);
 }).then(([names, views, clones]) => {
-  var str = '<table><tr><th>Name<td>View Count<td>View Unique<td>Clone Count<td>Clone Unique</tr>';
+  var str = '<table><tr><th>Name<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique</tr>';
   for (var i in names) {
     str += `<tr><th>${names[i]}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
   }
@@ -38,5 +51,7 @@ fetch('https://api.github.com/users/' + user + '/repos').then(response => {
   console.log('Error: ' + error);
 });
 </script>
+Wait...
 </body>
 </html>
+
