@@ -19,39 +19,33 @@ th, td {
 }
 </style>
 </head>
-<body>
+<body onload="run();">
 <script>
-var user = 'user';
-var password = 'password';
+async function run() {
+  var user = <name>;
+  var password = <personal_access_token>;
+  var init = {headers: {'Authorization': 'Basic ' + btoa(user + ':' + password)}};
 
-var init = {
-  headers: new Headers({
-    'Authorization': 'Basic ' + btoa(user + ':' + password)
-  })
-};
+  var repos_resp = await fetch('https://api.github.com/users/' + user + '/repos');
+  if (repos_resp.ok) {
+    var repos = await repos_resp.json();
 
-fetch('https://api.github.com/users/' + user + '/repos').then(response => {
-  return response.json();
-}).then(data => {
-  var names = data.map(repo => repo['name']);
-  var views =  Promise.all(data.map(repo => fetch(repo['url']+'/traffic/views?per=week', init)));
-  var clones =  Promise.all(data.map(repo => fetch(repo['url']+'/traffic/clones?per=week', init)));
-  return Promise.all([names, views, clones]);
-}).then(([names, views, clones]) => {
-  var views2 = Promise.all(views.map(repo => repo.json()));
-  var clones2 = Promise.all(clones.map(repo => repo.json()));
-  return Promise.all([names, views2, clones2]);
-}).then(([names, views, clones]) => {
-  var str = '<table><tr><th>Name<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique</tr>';
-  for (var i in names) {
-    str += `<tr><th>${names[i]}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
+    var views_url = Promise.all(repos.map(repo => fetch(repo['url']+'/traffic/views?per=week', init)));
+    var clones_url = Promise.all(repos.map(repo => fetch(repo['url']+'/traffic/clones?per=week', init)));
+    var [views_resp, clones_resp] = await Promise.all([views_url, clones_url]);
+
+    var views_t = Promise.all(views_resp.map(repo => repo.json()));
+    var clones_t = Promise.all(clones_resp.map(repo => repo.json()));
+    var [views, clones] = await Promise.all([views_t, clones_t]);
+
+    var str = '<table><tr><th>Name<th>Forks<th>Stars<th>Watchers<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique</tr>';
+    for (var i in repos) {
+      str += `<tr><th>${repos[i].name}<td>${repos[i].forks_count}<td>${repos[i].stargazers_count}<td>${repos[i].watchers_count}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
+    }
+    document.body.innerHTML = str;
   }
-  document.body.innerHTML = str;
-}).catch(error => {
-  console.log('Error: ' + error);
-});
+}
 </script>
 Wait...
 </body>
 </html>
-
