@@ -39,7 +39,6 @@ async function run() {
     var clones_t = Promise.all(clones_resp.map(repo => repo.json()));
     var refs_t = Promise.all(refs_resp.map(repo => repo.json()));
     var [views, clones, refs] = await Promise.all([views_t, clones_t, refs_t]);
-    console.log(refs);
 
     var str = '<table><tr><th>Name<th>Forks<th>Stars<th>Watchers<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique<th>Refs</tr>';
     for (var i in repos) {
