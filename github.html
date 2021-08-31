@@ -5,7 +5,7 @@ table {
   border-collapse: collapse;
 }
 
-th {
+th, .left {
   text-align: left;
 }
 
@@ -22,8 +22,8 @@ th, td {
 <body onload="run();">
 <script>
 async function run() {
-  var user = <name>;
-  var password = <personal_access_token>;
+  var user = '<name>';
+  var password = '<personal_access_token>';
   var init = {headers: {'Authorization': 'Basic ' + btoa(user + ':' + password)}};
 
   var repos_resp = await fetch('https://api.github.com/users/' + user + '/repos');
@@ -32,15 +32,18 @@ async function run() {
 
     var views_url = Promise.all(repos.map(repo => fetch(repo['url']+'/traffic/views?per=week', init)));
     var clones_url = Promise.all(repos.map(repo => fetch(repo['url']+'/traffic/clones?per=week', init)));
-    var [views_resp, clones_resp] = await Promise.all([views_url, clones_url]);
+    var refs_url = Promise.all(repos.map(repo => fetch(repo['url']+'/traffic/popular/referrers', init)));
+    var [views_resp, clones_resp, refs_resp] = await Promise.all([views_url, clones_url, refs_url]);
 
     var views_t = Promise.all(views_resp.map(repo => repo.json()));
     var clones_t = Promise.all(clones_resp.map(repo => repo.json()));
-    var [views, clones] = await Promise.all([views_t, clones_t]);
+    var refs_t = Promise.all(refs_resp.map(repo => repo.json()));
+    var [views, clones, refs] = await Promise.all([views_t, clones_t, refs_t]);
+    console.log(refs);
 
-    var str = '<table><tr><th>Name<th>Forks<th>Stars<th>Watchers<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique</tr>';
+    var str = '<table><tr><th>Name<th>Forks<th>Stars<th>Watchers<th>View Count<th>View Unique<th>Clone Count<th>Clone Unique<th>Refs</tr>';
     for (var i in repos) {
-      str += `<tr><th>${repos[i].name}<td>${repos[i].forks_count}<td>${repos[i].stargazers_count}<td>${repos[i].watchers_count}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}</tr>`;
+      str += `<tr><th>${repos[i].name}<td>${repos[i].forks_count}<td>${repos[i].stargazers_count}<td>${repos[i].watchers_count}<td>${views[i].count}<td>${views[i].uniques}<td>${clones[i].count}<td>${clones[i].uniques}<td class="left">${refs[i].map(e => e.referrer).join(', ')}</tr>`;
     }
     document.body.innerHTML = str;
   }
@@ -49,3 +52,4 @@ async function run() {
 Wait...
 </body>
 </html>
+
